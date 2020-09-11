@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.astar.activity.AStarActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_path_node"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:itemCount="100"
+            tools:layoutManager="GridLayoutManager"
+            tools:listitem="@layout/item_path_node"
+            tools:spanCount="10"
+            />
+
+        <TextView
+            android:id="@+id/tv_intro"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:text="\n
+UI说明:\n \t\t 格子左上角: F值 \t\t 左下角: G值 \t\t 右下角: H值 \n\t\t 蓝色格子: 未发现 \t\t 绿色: 已发现并加入 openlist \t\t 紫色:已走过并加入 closelist \t\t 红色:障碍物\n\n
+操作说明:\n
+    可以通过点击格子控制障碍物布局: \n\t\t * 点击蓝色格子会变成红色格子 \n\t\t * 点击红色格子会变成蓝色格子\n\n
+按钮说明:\n
+    Straight/Diagonal: 只能直线行走/允许斜线行走 \n
+    Next: 点击单步执行 长按直接找到路径 \n
+    Reset: 重置"
+            android:textColor="#000000"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/rv_path_node" />
+
+        <Button
+            android:id="@+id/btn_walk_type"
+            style="@style/Button"
+            android:text="Diagonal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btn_next"
+            android:layout_marginBottom="@dimen/dp_10"
+            tools:text="Straight" />
+
+        <Button
+            android:id="@+id/btn_next"
+            style="@style/Button"
+            android:text="next"
+            app:layout_constraintBottom_toBottomOf="@id/btn_walk_type"
+            app:layout_constraintLeft_toRightOf="@id/btn_walk_type"
+            app:layout_constraintRight_toLeftOf="@id/btn_reset"
+            app:layout_constraintTop_toTopOf="@id/btn_walk_type"
+            />
+
+        <Button
+            android:id="@+id/btn_reset"
+            style="@style/Button"
+            android:text="reset"
+            app:layout_constraintTop_toTopOf="@id/btn_walk_type"
+            app:layout_constraintBottom_toBottomOf="@id/btn_walk_type"
+            app:layout_constraintLeft_toRightOf="@id/btn_next"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
