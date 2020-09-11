@@ -134,6 +134,9 @@ public class NodeBean {
         }
     }
 
+    /**
+     *  如果当前 nodeBean 的 reachSate 是 未发现 或 是目的地，则设置 reachSate 为 已发现未走，并返回 true，否则返回 false
+     */
     public boolean findNode() {
         if (this.reachSate == ReachState.NOT_FIND || this.reachSate == ReachState.DESTINATION) {
             this.reachSate = ReachState.FIND_BUT_NOT_GO;

@@ -302,8 +302,8 @@ public class Tools {
         return pos;
     }
 
-    public static int pos2index(Vector2 pos, int lengh) {
-        return (pos.getY() - 1) * lengh + pos.getX() - 1;
+    public static int pos2index(Vector2 pos, int length) {
+        return (pos.getY() - 1) * length + pos.getX() - 1;
     }
 
     private static Random random = new Random();

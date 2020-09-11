@@ -12,13 +12,14 @@ import com.zyz.astaralgorithm.utils.AstarUtils
 import com.zyz.astaralgorithm.utils.PathUtils
 import com.zyz.astaralgorithm.utils.decoration.GridItemDecoration
 import kotlinx.android.synthetic.main.activity_a_start.*
-import java.util.*
 
+/**
+ * 参考: https://gitee.com/qiaogaojian/AndroidTest
+ */
 class AStarActivity : AppCompatActivity() {
 
     private var mStartPos = 0
     private var mEndPos = 0
-    private var mInitNodeList: MutableList<NodeBean> = ArrayList()  //只在初始化时使用
     private lateinit var mNodeAdapter: AStarAdapter
     private var mNextStepReachState = ReachState.NOT_FIND    // 0 未到达 1 已到达 2 此路不通
     private var mAStarUtils: AstarUtils = AstarUtils()
@@ -27,32 +28,31 @@ class AStarActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_a_start)
 
-        initData()
-        initUI()
+        initUI(initData())
     }
 
-    private fun initData() {
+    private fun initData(): MutableList<NodeBean> {
         val triple: Triple<Int, Int, MutableList<NodeBean>> = PathUtils.initPath()
         mStartPos = triple.first
         mEndPos = triple.second
-        mInitNodeList = triple.third
         println(String.format("startPos index: %d, endPos index: %d", mStartPos, mEndPos))
 
-        mAStarUtils.initNodeList(mInitNodeList)
+        mAStarUtils.initNodeList(triple.third)
+        return triple.third
     }
 
-    private fun initUI() {
+    private fun initUI(list: MutableList<NodeBean>) {
         if (mAStarUtils.isDiagonal) {
             btn_walk_type.text = "Diagonal"     //[daɪˈæɡənl] 对角线的
         } else {
             btn_walk_type.text = "Straight"     //[streɪt] 直的
         }
-        initRecy()
+        initRecy(list)
         initListener()
     }
 
-    private fun initRecy() {
-        mNodeAdapter = AStarAdapter(mInitNodeList)
+    private fun initRecy(list: MutableList<NodeBean>) {
+        mNodeAdapter = AStarAdapter(list)
         rv_path_node.setAdapter(mNodeAdapter)
         rv_path_node.setLayoutManager(GridLayoutManager(this, 10))
         rv_path_node.addItemDecoration(
@@ -96,13 +96,13 @@ class AStarActivity : AppCompatActivity() {
                 ToastUtils.showShort("No Road")
             }
             mNextStepReachState =
-                mAStarUtils.nextStep(mInitNodeList[mStartPos], mInitNodeList[mEndPos])
+                mAStarUtils.nextStep(mNodeAdapter.data[mStartPos], mNodeAdapter.data[mEndPos])
             mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
         }
 
         btn_next.setOnLongClickListener {
             val pathList =
-                mAStarUtils.findPath(mInitNodeList[mStartPos], mInitNodeList[mEndPos])
+                mAStarUtils.findPath(mNodeAdapter.data[mStartPos], mNodeAdapter.data[mEndPos])
             mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
             true
         }
@@ -110,8 +110,7 @@ class AStarActivity : AppCompatActivity() {
         btn_reset.setOnClickListener {
             mNextStepReachState = ReachState.NOT_FIND
             mAStarUtils.reset()
-            initData()
-            mNodeAdapter.refreshPath(mInitNodeList)
+            mNodeAdapter.refreshPath(initData())
         }
     }
 
