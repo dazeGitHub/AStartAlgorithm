@@ -11,11 +11,11 @@ package com.zyz.astaralgorithm.bean;
  */
 public enum ReachState{
 
-    NOT_ALLOW_GO(-1),
-    NOT_FIND(0),
-    FIND_BUT_NOT_GO(1),
-    FIND_AND_GO(2),
-    DESTINATION(3);
+    NOT_ALLOW_GO(-1),           // -1 不能走
+    NOT_FIND(0),                // 0  未发现
+    FIND_BUT_NOT_GO(1),         // 1  已发现未走
+    FIND_AND_GO(2),             // 2  已发现已走
+    DESTINATION(3);             // 3  目的地
 
     public final int code;
 

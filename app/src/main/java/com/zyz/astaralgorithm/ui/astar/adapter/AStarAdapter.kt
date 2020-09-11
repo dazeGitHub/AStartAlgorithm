@@ -21,7 +21,7 @@ class AStarAdapter(data: MutableList<NodeBean>?) :
     BaseQuickAdapter<NodeBean, BaseViewHolder>(R.layout.item_path_node, data) {
 
     fun refreshPath(list: MutableList<NodeBean>) {
-        setNewData(list)
+        setNewInstance(list)
         notifyDataSetChanged()
     }
 

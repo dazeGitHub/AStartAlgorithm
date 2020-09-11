@@ -1,38 +1,59 @@
 package com.zyz.astaralgorithm.ui.astar.activity
 
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.blankj.utilcode.util.ToastUtils
-import com.chad.library.adapter.base.BaseQuickAdapter
-import com.chad.library.adapter.base.listener.OnItemClickListener
 import com.zyz.astaralgorithm.R
 import com.zyz.astaralgorithm.bean.NodeBean
 import com.zyz.astaralgorithm.bean.ReachState
 import com.zyz.astaralgorithm.ui.astar.adapter.AStarAdapter
 import com.zyz.astaralgorithm.utils.AstarUtils
-import com.zyz.astaralgorithm.utils.Tools
+import com.zyz.astaralgorithm.utils.PathUtils
 import com.zyz.astaralgorithm.utils.decoration.GridItemDecoration
 import kotlinx.android.synthetic.main.activity_a_start.*
 import java.util.*
 
 class AStarActivity : AppCompatActivity() {
 
-    private var nodeList: MutableList<NodeBean> = ArrayList()
-    private lateinit var nodeAdapter: AStarAdapter
-    private var start = 0
-    private var end = 0
-    private var reachState = ReachState.NOT_FIND    // 0 未到达 1 已到达 2 此路不通
-            
-    private var astarUtils: AstarUtils = AstarUtils()
+    private var mStartPos = 0
+    private var mEndPos = 0
+    private var mAdapterNodeList: MutableList<NodeBean> = ArrayList()
+    private lateinit var mNodeAdapter: AStarAdapter
+    private var mNextStepReachState = ReachState.NOT_FIND    // 0 未到达 1 已到达 2 此路不通
+    private var mAStarUtils: AstarUtils = AstarUtils()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_a_start)
 
-        nodeAdapter = AStarAdapter(initPath())
-        rv_path_node.setAdapter(nodeAdapter)
+        initData()
+        initUI()
+    }
+
+    private fun initData() {
+        val triple: Triple<Int, Int, MutableList<NodeBean>> = PathUtils.initPath()
+        mStartPos = triple.first
+        mEndPos = triple.second
+        mAdapterNodeList = triple.third
+        println(String.format("startPos index: %d, endPos index: %d", mStartPos, mEndPos))
+
+        mAStarUtils.initNodeList(mAdapterNodeList)
+    }
+
+    private fun initUI() {
+        if (mAStarUtils.isDiagonal) {
+            btn_walk_type.text = "Diagonal"     //[daɪˈæɡənl] 对角线的
+        } else {
+            btn_walk_type.text = "Straight"     //[streɪt] 直的
+        }
+        initRecy()
+        initListener()
+    }
+
+    private fun initRecy() {
+        mNodeAdapter = AStarAdapter(mAdapterNodeList)
+        rv_path_node.setAdapter(mNodeAdapter)
         rv_path_node.setLayoutManager(GridLayoutManager(this, 10))
         rv_path_node.addItemDecoration(
             GridItemDecoration.Builder(this)
@@ -43,87 +64,59 @@ class AStarActivity : AppCompatActivity() {
                 .size(resources?.getDimension(R.dimen.dp_1)!!.toInt()).build()
         )
 
-        nodeAdapter.setOnItemClickListener { adapter, view, position ->
+        mNodeAdapter.setOnItemClickListener { adapter, view, position ->
             val tempBean = (adapter.getItem(position) as NodeBean)
             if (tempBean.reachSate == ReachState.NOT_ALLOW_GO) {
                 tempBean.reachSate = ReachState.NOT_FIND
                 adapter.notifyItemChanged(position)
-            } else if (tempBean.reachSate ==  ReachState.NOT_FIND) {
+            } else if (tempBean.reachSate == ReachState.NOT_FIND) {
                 tempBean.reachSate = ReachState.NOT_ALLOW_GO
                 adapter.notifyItemChanged(position)
             }
         }
+    }
 
-        if (astarUtils.isDiagonal) {
-            btn_walk_type.text = "Diagonal"     //[daɪˈæɡənl] 对角线的
-        } else {
-            btn_walk_type.text = "Straight"     //[streɪt] 直的
-        }
-
+    private fun initListener() {
         //点击设置直走还是斜走
-        btn_walk_type.setOnClickListener{
-            if (astarUtils.isDiagonal()) {
-                astarUtils.setIsDiagonal(false)
+        btn_walk_type.setOnClickListener {
+            if (mAStarUtils.isDiagonal()) {
+                mAStarUtils.setIsDiagonal(false)
                 btn_walk_type.text = "Straight"
             } else {
-                astarUtils.setIsDiagonal(true)
+                mAStarUtils.setIsDiagonal(true)
                 btn_walk_type.text = "Diagonal"
             }
         }
 
-        btn_next.setOnClickListener{
-            if (reachState == ReachState.FIND_BUT_NOT_GO) {
+        btn_next.setOnClickListener {
+            if (mNextStepReachState == ReachState.FIND_BUT_NOT_GO) {
                 ToastUtils.showShort("Has Reach End")
-                nodeAdapter.refreshPath(astarUtils.getNodeList())
-            } else if (reachState == ReachState.FIND_AND_GO) {
+                mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
+            } else if (mNextStepReachState == ReachState.FIND_AND_GO) {
                 ToastUtils.showShort("No Road")
             }
-            reachState = astarUtils.nextStep(nodeList, nodeList!![start], nodeList[end])
-            nodeAdapter.refreshPath(astarUtils.getNodeList())
+            mNextStepReachState =
+                mAStarUtils.nextStep(mAdapterNodeList[mStartPos], mAdapterNodeList[mEndPos])
+            mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
         }
 
-        btn_next.setOnLongClickListener{
-            val pathList = astarUtils.findPath(nodeList, nodeList!![start], nodeList[end])
-            nodeAdapter.refreshPath(astarUtils.getNodeList())
-             true
+        btn_next.setOnLongClickListener {
+            val pathList =
+                mAStarUtils.findPath(mAdapterNodeList[mStartPos], mAdapterNodeList[mEndPos])
+            mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
+            true
         }
 
-        btn_reset.setOnClickListener{
-            reachState = ReachState.NOT_FIND
-            astarUtils.reset()
-            nodeAdapter.refreshPath(initPath())
+        btn_reset.setOnClickListener {
+            mNextStepReachState = ReachState.NOT_FIND
+            mAStarUtils.reset()
+            initData()
+            mNodeAdapter.refreshPath(mAdapterNodeList)
         }
-    }
-
-
-    private fun initPath(): MutableList<NodeBean> {
-        for (i in 0..99) {
-            val node = NodeBean()
-            node.pos = Tools.index2pos(i, 10)
-            node.index = i
-            node.reachSate = ReachState.NOT_FIND
-            nodeList.add(node)
-        }
-
-        // 障碍
-        val random = Random()
-        for (i in 0..29) {
-            nodeList.get(random.nextInt(100)).reachSate = ReachState.NOT_ALLOW_GO
-        }
-
-        // 起点和终点
-        start = random.nextInt(100)
-        end = random.nextInt(100)
-        nodeList.get(start).reachSate = ReachState.FIND_AND_GO
-        nodeList.get(start).isStart = true
-        nodeList.get(end).reachSate =  ReachState.DESTINATION
-        nodeList.get(end).isEnd = true
-        println(String.format("startPos index:%d", start))
-        return nodeList
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        astarUtils.reset()
+        mAStarUtils.reset()
     }
 }

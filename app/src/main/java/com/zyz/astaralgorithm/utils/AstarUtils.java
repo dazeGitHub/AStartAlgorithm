@@ -21,7 +21,11 @@ public class AstarUtils {
     private List<NodeBean> pathList = new ArrayList<>();
     private List<NodeBean> nodeList;
     private NodeBean curNode;
-    private boolean isDiagonal;          // 是否斜角行进
+    private boolean isDiagonal;                         // 是否斜角行进
+
+    public void initNodeList(List<NodeBean> oriList) {  //初始化 NodeList
+        nodeList = oriList;
+    }
 
     private int getPosDistance(Vector2 pos1, Vector2 pos2) {
         int distance = 0;
@@ -42,9 +46,13 @@ public class AstarUtils {
         return distance;
     }
 
-    public List<NodeBean> findPath(List<NodeBean> oriList, NodeBean start, NodeBean end) {
+    public List<NodeBean> findPath(NodeBean start, NodeBean end) throws Exception {
+        if (nodeList == null) {
+            throw new Exception("AstarUtils not init NodeList !!");
+        }
+
         while (true) {
-            ReachState state = nextStep(oriList, start, end);
+            ReachState state = nextStep(start, end);
             if (state == ReachState.FIND_BUT_NOT_GO) {
                 ToastUtils.showShort("Has Reach End");
                 break;
@@ -57,17 +65,18 @@ public class AstarUtils {
     }
 
     /**
-     * @param oriList 地图列表
-     * @param start   起点
-     * @param end     终点
+     * @param start 起点
+     * @param end   终点
      * @return 0 未到达 1 已到达 2 此路不通
      */
-    public ReachState nextStep(List<NodeBean> oriList, NodeBean start, NodeBean end) {
-        if (nodeList == null || nodeList.size() == 0) {
-            nodeList = oriList;
+
+    public ReachState nextStep(NodeBean start, NodeBean end) throws Exception {
+        if (nodeList == null) {
+            throw new Exception("AstarUtils not init NodeList !!");
+        }
+        if (curNode == null) {
             curNode = start;
         }
-
         closeList.add(curNode);
 
         nodeList.get(curNode.getIndex()).setReachSate(ReachState.FIND_AND_GO);
@@ -200,4 +209,5 @@ public class AstarUtils {
         if (pathList != null)
             pathList.clear();
     }
+
 }
