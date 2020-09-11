@@ -14,8 +14,6 @@ import java.util.List;
  * Func:
  */
 public class AstarUtils {
-    private int height;
-    private int width;
     private List<NodeBean> openList = new ArrayList<>();
     private List<NodeBean> closeList = new ArrayList<>();
     private List<NodeBean> pathList = new ArrayList<>();

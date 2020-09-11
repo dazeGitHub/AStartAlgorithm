@@ -18,7 +18,7 @@ class AStarActivity : AppCompatActivity() {
 
     private var mStartPos = 0
     private var mEndPos = 0
-    private var mAdapterNodeList: MutableList<NodeBean> = ArrayList()
+    private var mInitNodeList: MutableList<NodeBean> = ArrayList()  //只在初始化时使用
     private lateinit var mNodeAdapter: AStarAdapter
     private var mNextStepReachState = ReachState.NOT_FIND    // 0 未到达 1 已到达 2 此路不通
     private var mAStarUtils: AstarUtils = AstarUtils()
@@ -35,10 +35,10 @@ class AStarActivity : AppCompatActivity() {
         val triple: Triple<Int, Int, MutableList<NodeBean>> = PathUtils.initPath()
         mStartPos = triple.first
         mEndPos = triple.second
-        mAdapterNodeList = triple.third
+        mInitNodeList = triple.third
         println(String.format("startPos index: %d, endPos index: %d", mStartPos, mEndPos))
 
-        mAStarUtils.initNodeList(mAdapterNodeList)
+        mAStarUtils.initNodeList(mInitNodeList)
     }
 
     private fun initUI() {
@@ -52,7 +52,7 @@ class AStarActivity : AppCompatActivity() {
     }
 
     private fun initRecy() {
-        mNodeAdapter = AStarAdapter(mAdapterNodeList)
+        mNodeAdapter = AStarAdapter(mInitNodeList)
         rv_path_node.setAdapter(mNodeAdapter)
         rv_path_node.setLayoutManager(GridLayoutManager(this, 10))
         rv_path_node.addItemDecoration(
@@ -96,13 +96,13 @@ class AStarActivity : AppCompatActivity() {
                 ToastUtils.showShort("No Road")
             }
             mNextStepReachState =
-                mAStarUtils.nextStep(mAdapterNodeList[mStartPos], mAdapterNodeList[mEndPos])
+                mAStarUtils.nextStep(mInitNodeList[mStartPos], mInitNodeList[mEndPos])
             mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
         }
 
         btn_next.setOnLongClickListener {
             val pathList =
-                mAStarUtils.findPath(mAdapterNodeList[mStartPos], mAdapterNodeList[mEndPos])
+                mAStarUtils.findPath(mInitNodeList[mStartPos], mInitNodeList[mEndPos])
             mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
             true
         }
@@ -111,7 +111,7 @@ class AStarActivity : AppCompatActivity() {
             mNextStepReachState = ReachState.NOT_FIND
             mAStarUtils.reset()
             initData()
-            mNodeAdapter.refreshPath(mAdapterNodeList)
+            mNodeAdapter.refreshPath(mInitNodeList)
         }
     }
 
