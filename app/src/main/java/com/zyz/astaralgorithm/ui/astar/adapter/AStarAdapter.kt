@@ -17,8 +17,8 @@ import com.zyz.astaralgorithm.bean.ReachState
  * version: 1.0
 </pre> *
  */
-class AStarAdapter(data: MutableList<NodeBean>?) :
-    BaseQuickAdapter<NodeBean, BaseViewHolder>(R.layout.item_path_node, data) {
+class AStarAdapter(data: MutableList<NodeBean>?) :  BaseQuickAdapter<NodeBean, BaseViewHolder>(R.layout.item_path_node, data) {
+    private val TAG = AStarAdapter::class.java.name
 
     fun refreshPath(list: MutableList<NodeBean>) {
         setNewInstance(list)
@@ -26,6 +26,14 @@ class AStarAdapter(data: MutableList<NodeBean>?) :
     }
 
     override fun convert(helper: BaseViewHolder, item: NodeBean) {
+
+        val position: Int = helper.layoutPosition - headerLayoutCount
+        if(item.isStart){
+            Log.d(TAG, "convert item Start position =$position")
+        }
+        if(item.isEnd){
+            Log.d(TAG, "convert item End position =$position")
+        }
 
         helper.setVisible(R.id.tv_f, item.isFValidate)
             .setVisible(R.id.tv_g, item.isFValidate)

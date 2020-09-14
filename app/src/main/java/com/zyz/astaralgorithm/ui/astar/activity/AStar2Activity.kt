@@ -8,6 +8,7 @@ import com.blankj.utilcode.util.ToastUtils
 import com.zyz.astaralgorithm.R
 import com.zyz.astaralgorithm.bean.NodeBean
 import com.zyz.astaralgorithm.bean.ReachState
+import com.zyz.astaralgorithm.bean.Vector2
 import com.zyz.astaralgorithm.ui.astar.adapter.AStarAdapter
 import com.zyz.astaralgorithm.utils.AStarUtils
 import com.zyz.astaralgorithm.utils.PathUtils
@@ -15,6 +16,7 @@ import com.zyz.astaralgorithm.utils.decoration.GridItemDecoration
 import kotlinx.android.synthetic.main.activity_a_star2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
+import org.w3c.dom.Node
 
 /**
  * 实时更新画面（实时寻路），并通过上下左右控制 目标点
@@ -28,7 +30,7 @@ class AStar2Activity : AppCompatActivity() {
     private lateinit var mNodeAdapter: AStarAdapter
     private var mNextStepReachState = ReachState.NOT_FIND    // 0 未到达 1 已到达 2 此路不通
     private var mAStarUtils: AStarUtils = AStarUtils()
-    private val mGameLooperJob = Job()                       //用来取消协程
+    private var mGameLooperJob :Job? = null                    //用来取消协程
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +43,7 @@ class AStar2Activity : AppCompatActivity() {
         val triple: Triple<Int, Int, MutableList<NodeBean>> = PathUtils.initPath()
         mStartPos = triple.first
         mEndPos = triple.second
-        println(String.format("startPos index: %d, endPos index: %d", mStartPos, mEndPos))
+        Log.d(TAG,String.format("startPos index: %d, endPos index: %d", mStartPos, mEndPos))
 
         mAStarUtils.initNodeList(triple.third)
         return triple.third
@@ -101,51 +103,77 @@ class AStar2Activity : AppCompatActivity() {
             reset()
         }
 
-        btn_start_auto_next.setOnClickListener{
+        btn_start_auto_next.setOnClickListener {
             initGameLooper()
         }
 
-        btn_close_auto_next.setOnClickListener{
+        btn_close_auto_next.setOnClickListener {
             closeGameLooper()
         }
 
-        btn_up.setOnClickListener{
-            val tempEndPos =
-            mNodeAdapter.data[mEndPos]
-
+        btn_up.setOnClickListener {
+            mAStarUtils.getTopPosNodeVector(mNodeAdapter.data[mEndPos]).let {targetNodeVector ->
+                setTargetNodeToEnd(targetNodeVector)
+            }
         }
 
-        btn_down.setOnClickListener{
-
+        btn_down.setOnClickListener {
+            mAStarUtils.getDownPosNodeVector(mNodeAdapter.data[mEndPos]).let {targetNodeVector ->
+                setTargetNodeToEnd(targetNodeVector)
+            }
         }
 
-        btn_left.setOnClickListener{
-
+        btn_left.setOnClickListener {
+            mAStarUtils.getLeftPosNodeVector(mNodeAdapter.data[mEndPos]).let {targetNodeVector ->
+                setTargetNodeToEnd(targetNodeVector)
+            }
         }
 
-        btn_right.setOnClickListener{
+        btn_right.setOnClickListener {
+            mAStarUtils.getRightPosNode(mNodeAdapter.data[mEndPos]).let {targetNodeVector ->
+                setTargetNodeToEnd(targetNodeVector)
+            }
+        }
+    }
 
+    //设置指定结点为 End 结点
+    private fun setTargetNodeToEnd(vector:Vector2){
+        if (mAStarUtils.checkVectorValidate(vector)) {
+            Log.d(TAG, "btn_up upNode is Validate")
+            //设置当前 endPos 的 isEnd 为 false
+            mNodeAdapter.data[mEndPos].reachSate = ReachState.NOT_FIND
+            mNodeAdapter.data[mEndPos].isEnd = false
+            mNodeAdapter.notifyItemChanged(mEndPos)
+            //设置 endPos 上边的结点的 isEnd 为 true
+            mAStarUtils.getNodeBeanByPosVector(vector)?.let { topNodeBean ->
+                mEndPos = topNodeBean.index
+                topNodeBean.reachSate = ReachState.DESTINATION
+                mNodeAdapter.data[mEndPos].isEnd = true
+                mNodeAdapter.notifyItemChanged(mEndPos)
+            }
         }
     }
 
     private fun initGameLooper() { //开启游戏循环，实时更新画面
+        mGameLooperJob = Job()
         val tickerChannel = ticker(delayMillis = 1_000, initialDelayMillis = 0)     //每 1s 执行一次
-        val uiScope = CoroutineScope(Dispatchers.Main + mGameLooperJob)     //初始化 CoroutineScope 指定协程的运行所在线程传入 Job 方便后面取消协程
-        val tempJob:Job = uiScope.launch {                                          //启动一个协程
+        val uiScope =
+            CoroutineScope(Dispatchers.Main + mGameLooperJob!!)             //初始化 CoroutineScope 指定协程的运行所在线程传入 Job 方便后面取消协程
+        val tempJob: Job = uiScope.launch {                                         //启动一个协程
             repeat(mRepeatTime) {
                 val receiveValue = tickerChannel.receive()
-                Log.d(TAG, "initGameLooper repeat receiveValue =$receiveValue , CurrentThread =" + Thread.currentThread().name)
+                Log.d(TAG,"initGameLooper repeat receiveValue =$receiveValue , CurrentThread =" + Thread.currentThread().name)
                 goNext()
             }
         }
     }
 
-    private fun closeGameLooper(){                           //关闭自动寻路
-        mGameLooperJob.cancel()                              //关闭协程
-        Log.d(TAG,"关闭了自动寻路")
+    private fun closeGameLooper() {                            //关闭自动寻路
+        mGameLooperJob?.cancel()                               //关闭协程
+        Log.d(TAG, "关闭了自动寻路")
     }
 
-    private fun settingMode(){
+    private fun settingMode() {
         if (mAStarUtils.isDiagonal) {
             mAStarUtils.isDiagonal = false
             btn_walk_type.text = "Straight"
@@ -155,7 +183,7 @@ class AStar2Activity : AppCompatActivity() {
         }
     }
 
-    private fun goNext(){
+    private fun goNext() {
         if (mNextStepReachState == ReachState.FIND_BUT_NOT_GO) {
             ToastUtils.showShort("Has Reach End, Auto closeGameLooper !")
             mNodeAdapter.refreshPath(mAStarUtils.getNodeList()!!)
@@ -171,13 +199,13 @@ class AStar2Activity : AppCompatActivity() {
         mNodeAdapter.refreshPath(mAStarUtils.getNodeList()!!)
     }
 
-    private fun goNextTotalPath(){
+    private fun goNextTotalPath() {
         val pathList =
             mAStarUtils.findPath(mNodeAdapter.data[mStartPos], mNodeAdapter.data[mEndPos])
         mNodeAdapter.refreshPath(mAStarUtils.getNodeList()!!)
     }
 
-    private fun reset(){
+    private fun reset() {
         mNextStepReachState = ReachState.NOT_FIND
         mAStarUtils.reset()
         mNodeAdapter.refreshPath(initData())

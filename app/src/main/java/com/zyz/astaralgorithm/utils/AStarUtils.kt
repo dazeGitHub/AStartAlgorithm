@@ -18,6 +18,7 @@ class AStarUtils {
     private val mPathList: MutableList<NodeBean> = ArrayList()
     private var mNodeList: MutableList<NodeBean>? = null
     private var mCurNode: NodeBean? = null
+    private var mLength = 10
     var isDiagonal:Boolean = false                                  // 是否斜角行进 = false
 
     fun initNodeList(oriList: MutableList<NodeBean>) {              //初始化 NodeList
@@ -103,10 +104,10 @@ class AStarUtils {
         val endPos = endNodeBean.pos
 
         //获取左右上下四个结点
-        val curLeftPos : Vector2 = getLeftPosNodeVector()
-        val curRightPos : Vector2 = getRightPosNode()
-        val curTopPos : Vector2 = getTopPosNodeVector()
-        val curDownPos : Vector2 = getDownPosNodeVector()
+        val curLeftPos : Vector2 = getLeftPosNodeVector(mCurNode!!)
+        val curRightPos : Vector2 = getRightPosNode(mCurNode!!)
+        val curTopPos : Vector2 = getTopPosNodeVector(mCurNode!!)
+        val curDownPos : Vector2 = getDownPosNodeVector(mCurNode!!)
 
         println(
             String.format(
@@ -177,10 +178,10 @@ class AStarUtils {
     }
 
     private fun processDiagonal2(startPos:Vector2,endPos:Vector2){
-        val curTopLeftPos = getTopLeftPosNode()
-        val curTopRightPos = getTopRightPosNode()
-        val curDownLeftPos = getDownLeftPosNode()
-        val curDownRightPos = getDownRightPosNode()
+        val curTopLeftPos = getTopLeftPosNode(mCurNode!!)
+        val curTopRightPos = getTopRightPosNode(mCurNode!!)
+        val curDownLeftPos = getDownLeftPosNode(mCurNode!!)
+        val curDownRightPos = getDownRightPosNode(mCurNode!!)
 
         val topLeftDown = Vector2(curTopLeftPos.x, curTopLeftPos.y + 1)
         val topLeftRight = Vector2(curTopLeftPos.x + 1, curTopLeftPos.y)
@@ -213,54 +214,69 @@ class AStarUtils {
 
     //计算 curPos 的结点的 G 值、H 值、F 值，设置其 Parent 是当前结点 curNode，并将其添加到 openList 中
     private fun addNeighborToOpenList2(curNodeBean: NodeBean?, curPos: Vector2, startPos: Vector2, endPos: Vector2) {
-        //这里 G 值和 H 值使用同一种方法 getPosDistance() 来计算
-        curNodeBean?.g = getPosDistance(startPos, curPos)
-        curNodeBean?.h = getPosDistance(curPos, endPos)
-        curNodeBean?.calF()
-        curNodeBean?.parent = mCurNode
-        curNodeBean?.let { mOpenList.add(it) }
+        if(curNodeBean?.findNode() == true){
+            //这里 G 值和 H 值使用同一种方法 getPosDistance() 来计算
+            curNodeBean.g = getPosDistance(startPos, curPos)
+            curNodeBean.h = getPosDistance(curPos, endPos)
+            curNodeBean.calF()
+            curNodeBean.parent = mCurNode
+            curNodeBean.let { mOpenList.add(it) }
+        }
     }
 
-    private fun getNodeBeanByPosVector(pos:Vector2): NodeBean?{
-        val curPosIndex = Tools.pos2index(pos, 10)
-        if (pos.isValid(10) && mNodeList!![curPosIndex].findNode()) {
-            return mNodeList!![curPosIndex]
+    fun checkVectorValidate(curPosIndex:Int,vector:Vector2):Boolean{
+        return vector.isValid(mLength) && mNodeList!![curPosIndex].checkNode()
+    }
+
+    fun checkVectorValidate(vector:Vector2):Boolean{
+        return checkVectorValidate(Tools.pos2index(vector, mLength),vector)
+    }
+
+    fun getNodeBeanByPosVector(vector:Vector2): NodeBean?{
+        val curPosIndex = Tools.pos2index(vector, mLength)
+        if(checkVectorValidate(curPosIndex,vector)){
+            return mNodeList!![Tools.pos2index(vector, mLength)]
         }
         return null
     }
 
-    //获取当前结点上边的结点
-    fun getTopPosNodeVector(): Vector2{
-        return Vector2(mCurNode!!.pos.x, mCurNode!!.pos.y - 1)
+    fun getCurPosNodeVector(nodeBean:NodeBean): Vector2{
+        return Vector2(nodeBean.pos.x, nodeBean.pos.y)
     }
 
-    fun getDownPosNodeVector(): Vector2{
-        return Vector2(mCurNode!!.pos.x, mCurNode!!.pos.y + 1)
+    //获取指定结点上下左右的结点
+    fun getTopPosNodeVector(nodeBean:NodeBean): Vector2{
+        return Vector2(nodeBean.pos.x, nodeBean.pos.y - 1)
     }
 
-    fun getLeftPosNodeVector():Vector2{
-        return Vector2(mCurNode!!.pos.x - 1, mCurNode!!.pos.y)
+    fun getDownPosNodeVector(nodeBean:NodeBean): Vector2{
+        return Vector2(nodeBean.pos.x, nodeBean.pos.y + 1)
     }
 
-    fun getRightPosNode():Vector2{
-        return Vector2(mCurNode!!.pos.x + 1, mCurNode!!.pos.y)
+    fun getLeftPosNodeVector(nodeBean:NodeBean):Vector2{
+        return Vector2(nodeBean.pos.x - 1,nodeBean.pos.y)
+    }
+
+    fun getRightPosNode(nodeBean:NodeBean):Vector2{
+        return Vector2(nodeBean.pos.x + 1, nodeBean.pos.y)
 //        return getNodeBeanByPosVector(curTopPos)
     }
 
-    fun getTopLeftPosNode():Vector2{
-        return Vector2(mCurNode!!.pos.x - 1, mCurNode!!.pos.y - 1)
+    //获取指定结点对角线的结点
+    fun getTopLeftPosNode(nodeBean:NodeBean):Vector2{
+        return Vector2(nodeBean.pos.x - 1, nodeBean.pos.y - 1)
     }
 
-    fun getTopRightPosNode():Vector2{
-        return Vector2(mCurNode!!.pos.x + 1, mCurNode!!.pos.y - 1)
+    fun getTopRightPosNode(nodeBean:NodeBean):Vector2{
+        return Vector2(nodeBean.pos.x + 1, nodeBean.pos.y - 1)
     }
 
-    fun getDownLeftPosNode():Vector2{
-        return Vector2(mCurNode!!.pos.x - 1, mCurNode!!.pos.y + 1)
+    fun getDownLeftPosNode(nodeBean:NodeBean):Vector2{
+        return Vector2(nodeBean.pos.x - 1, nodeBean.pos.y + 1)
     }
 
-    fun getDownRightPosNode():Vector2{
-        return Vector2(mCurNode!!.pos.x + 1, mCurNode!!.pos.y + 1)
+    fun getDownRightPosNode(nodeBean:NodeBean):Vector2{
+        return Vector2(nodeBean.pos.x + 1, nodeBean.pos.y + 1)
     }
 
     fun getNodeList(): MutableList<NodeBean>? {
