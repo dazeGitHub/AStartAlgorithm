@@ -9,8 +9,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.zyz.astaralgorithm.ui.astar.activity.AStarActivity"></activity>
-        <activity android:name="com.zyz.astaralgorithm.ui.main.MainActivity">
+        <activity android:name=".ui.astar.activity.AStar2Activity"></activity>
+        <activity android:name=".ui.astar.activity.AStarActivity" />
+        <activity android:name=".ui.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

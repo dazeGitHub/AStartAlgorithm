@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.zyz.astaralgorithm.R
+import com.zyz.astaralgorithm.ui.astar.activity.AStar2Activity
 import com.zyz.astaralgorithm.ui.astar.activity.AStarActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -14,6 +15,10 @@ class MainActivity : AppCompatActivity() {
 
         btn_show_a_star.setOnClickListener{
             startActivity(Intent(this, AStarActivity::class.java))
+        }
+
+        btn_show_a_star2.setOnClickListener{
+            startActivity(Intent(this, AStar2Activity::class.java))
         }
     }
 }

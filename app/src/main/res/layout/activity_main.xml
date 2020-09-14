@@ -13,5 +13,16 @@
         android:text="显示 AStartActivity"
         />
 
+    <Button
+        android:id="@+id/btn_show_a_star2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_show_a_star"
+        android:text="显示 AStart2Activity"
+        android:background="@color/code_green"
+        android:padding="10dp"
+        android:layout_marginLeft="5dp"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

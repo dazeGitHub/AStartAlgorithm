@@ -8,25 +8,26 @@ import com.zyz.astaralgorithm.R
 import com.zyz.astaralgorithm.bean.NodeBean
 import com.zyz.astaralgorithm.bean.ReachState
 import com.zyz.astaralgorithm.ui.astar.adapter.AStarAdapter
-import com.zyz.astaralgorithm.utils.AstarUtils
+import com.zyz.astaralgorithm.utils.AStarUtils
 import com.zyz.astaralgorithm.utils.PathUtils
 import com.zyz.astaralgorithm.utils.decoration.GridItemDecoration
-import kotlinx.android.synthetic.main.activity_a_start.*
+import kotlinx.android.synthetic.main.activity_a_star.*
 
 /**
  * 参考: https://gitee.com/qiaogaojian/AndroidTest
  */
-class AStarActivity : AppCompatActivity() {
+open class AStarActivity : AppCompatActivity() {
 
     private var mStartPos = 0
     private var mEndPos = 0
     private lateinit var mNodeAdapter: AStarAdapter
     private var mNextStepReachState = ReachState.NOT_FIND    // 0 未到达 1 已到达 2 此路不通
-    private var mAStarUtils: AstarUtils = AstarUtils()
+    private var mAStarUtils: AStarUtils =
+        AStarUtils()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_a_start)
+        setContentView(R.layout.activity_a_star)
 
         initUI(initData())
     }
@@ -79,11 +80,11 @@ class AStarActivity : AppCompatActivity() {
     private fun initListener() {
         //点击设置直走还是斜走
         btn_walk_type.setOnClickListener {
-            if (mAStarUtils.isDiagonal()) {
-                mAStarUtils.setIsDiagonal(false)
+            if (mAStarUtils.isDiagonal) {
+                mAStarUtils.isDiagonal = false
                 btn_walk_type.text = "Straight"
             } else {
-                mAStarUtils.setIsDiagonal(true)
+                mAStarUtils.isDiagonal = true
                 btn_walk_type.text = "Diagonal"
             }
         }
@@ -91,19 +92,19 @@ class AStarActivity : AppCompatActivity() {
         btn_next.setOnClickListener {
             if (mNextStepReachState == ReachState.FIND_BUT_NOT_GO) {
                 ToastUtils.showShort("Has Reach End")
-                mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
+                mNodeAdapter.refreshPath(mAStarUtils.getNodeList()!!)
             } else if (mNextStepReachState == ReachState.FIND_AND_GO) {
                 ToastUtils.showShort("No Road")
             }
             mNextStepReachState =
                 mAStarUtils.nextStep(mNodeAdapter.data[mStartPos], mNodeAdapter.data[mEndPos])
-            mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
+            mNodeAdapter.refreshPath(mAStarUtils.getNodeList()!!)
         }
 
         btn_next.setOnLongClickListener {
             val pathList =
                 mAStarUtils.findPath(mNodeAdapter.data[mStartPos], mNodeAdapter.data[mEndPos])
-            mNodeAdapter.refreshPath(mAStarUtils.getNodeList())
+            mNodeAdapter.refreshPath(mAStarUtils.getNodeList()!!)
             true
         }
 
